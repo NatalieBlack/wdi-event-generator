@@ -39,14 +39,21 @@ class Cohort
     return false
   end
 
-  def lectures
+  def class_days
     list = []
-    index = 0
     (@first_day..last_day).each do |day|
       unless no_lecture_on(day) 
-        list << Lecture.new(index, day)
-        index += 1
+        list << day
       end
+    end
+
+    return list
+  end
+
+  def lectures
+    list = []
+    class_days.each_with_index do |day, index|
+      list << Lecture.new(index, day)
     end
 
     return list
@@ -113,3 +120,4 @@ class Lecture
   end
 
 end
+
