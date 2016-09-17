@@ -2,6 +2,7 @@ require 'date'
 require 'active_support'
 require 'active_support/core_ext'
 require 'holidays'
+require_relative 'lecture'
 
 
 class Cohort
@@ -9,6 +10,9 @@ class Cohort
 #end day is calendar day
 #given week and day return calendar day
 #generate lecture days
+  FIRST_COFFEE_CODE_WEEK = 2
+  LAST_COFFEE_CODE_WEEK = 6
+  WEEKS_IN_COHORT = 9
 
 
   def initialize(first_day)
@@ -16,7 +20,7 @@ class Cohort
   end
 
   def last_day
-    @first_day + 8.weeks + 4.days
+    @first_day + (WEEKS_IN_COHORT - 1).weeks + 4.days
   end
 
   def no_lecture_on(day)
@@ -40,14 +44,17 @@ class Cohort
   end
 
   def class_days
-    list = []
-    (@first_day..last_day).each do |day|
-      unless no_lecture_on(day) 
-        list << day
+    @class_days ||= []
+
+    if @class_days.empty?
+      (@first_day..last_day).each do |day|
+        unless no_lecture_on(day) 
+          @class_days << day
+        end
       end
     end
 
-    return list
+    return @class_days
   end
 
   def lectures
@@ -59,65 +66,41 @@ class Cohort
     return list
   end
 
-end
+  def weeks_of_cohort
+    (@first_day..last_day).each_slice(7)
+  end
 
-class Lecture
+  def week_of(day)
+    week_number = 1
+    weeks_of_cohort.each do |week|
+      if week.include?(day)
+        return week_number
+      end
 
-  LECTURE_TITLES = [
-    "OS and Git Fundamentals", 
-    "Ruby Fundamentals part 1", 
-    "Ruby Fundamentals part 2", 
-    "Object-Oriented Programming part 1", 
-    "Object-Oriented Programming part 2", 
-    "How To Think Like a Developer", 
-    "Debugging & Testing in Ruby", 
-    "HTTP Requests and Responses", 
-    "CSS Box Model & Templates", 
-    "HTML Forms & Submitting Data", 
-    "Saving Your Data/Intro To Databases", 
-    "Intro to Rails", 
-    "Routing & Controllers", 
-    "Views & Forms",
-    "SQL & ActiveRecord & Validations",
-    "Validations and Associations in Rails",
-    "Sessions & Authentication",
-    "Planning and Thinking Through a Rails Application",
-    "Teamwork with Git",
-    "Testing With Rails",
-    "Serving Different Representations of Data",
-    "Displays & Floats in CSS",
-    "Positioning & Intro to Sass",
-    "JavaScript Fundamentals",
-    "Intro to jQuery & DOM",
-    "Events, Callbacks & Closures",
-    "Client-side Applications",
-    "Intro to AJAX",
-    "AJAX & JSON",
-    "Forms & AJAX",
-    "Client-side Templating",
-    "Crowdfunder, Multi-Model Forms",
-    "Authentication & Authorization",
-    "Environments and Sending Email",
-    "Ruby Fundamentals Review",
-    "Intro to Responsive Web Design",
-    "Working with APIs",
-    "Scheduled Tasks and Background Jobs",
-    "Surprise 1",
-    "Surprise 2",
-    "Surprise 3",
-    "Surprise 4",
-    "Surprise 5",
-    "Preparing for Interviews",
-    "Deployment, Capistrano & Metrics"
-  ]
+      week_number += 1
+    end
 
-  attr_reader :title, :date, :number
+    return nil
+  end
 
-  def initialize(number, date)
-    @number = number
-    @date = date
-    @title = LECTURE_TITLES[number]
+  def coffee_code_day?(day)
+    day.tuesday? || day.thursday?
+  end
+
+  def coffee_code_week?(day)
+    week_of(day).between?(FIRST_COFFEE_CODE_WEEK, LAST_COFFEE_CODE_WEEK)
+  end
+
+  def coffee_code_days
+    list = []
+
+    class_days.each do |day|
+      if coffee_code_week?(day) && coffee_code_day?(day)
+        list << day
+      end
+    end
+
+    return list
   end
 
 end
-
