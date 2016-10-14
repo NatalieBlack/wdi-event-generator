@@ -11,7 +11,7 @@ class Cohort
 #given week and day return calendar day
 #generate lecture days
   FIRST_COFFEE_CODE_WEEK = 2
-  LAST_COFFEE_CODE_WEEK = 6
+  LAST_COFFEE_CODE_WEEK = 7
   WEEKS_IN_COHORT = 9
 
 
